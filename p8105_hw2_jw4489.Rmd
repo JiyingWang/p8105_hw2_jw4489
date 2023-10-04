@@ -1,0 +1,79 @@
+---
+title: "p8105_hw2_jw4489"
+output: github_document
+date: "2023-10-04"
+---
+
+```{r}
+library(tidyverse)
+```
+
+
+##Problem 1
+
+```{r}
+pols_month_df = 
+  read_csv("p1data/pols-month.csv") |> 
+  janitor::clean_names() |> 
+  separate(mon, into = c("year", "month", "day"), sep = "-") |> 
+  mutate(
+    month = month.name[as.numeric(month)],
+    year = as.numeric(year),
+    president = ifelse(
+      prez_gop > prez_dem, "gop", "dem"
+    )
+  ) |> 
+  select(-day, -prez_gop, -prez_dem)
+
+pols_month_df
+```
+
+```{r}
+snp_df = 
+  read_csv("p1data/snp.csv") |>
+  janitor::clean_names() |> 
+  mutate(
+    date = format(as.Date(date, format = "%m/%d/%y"), "%Y/%m/%d")
+  ) |> 
+  separate(date, into = c("year", "month", "day"), sep = "/") |> 
+  mutate(
+    month = month.name[as.numeric(month)],
+    year = as.numeric(year),
+    year = ifelse(year > 2023, year - 100, year)
+  ) |> 
+  select(-day)
+
+snp_df
+```
+
+```{r}
+unemployment_df = 
+  read_csv("p1data/unemployment.csv") |> 
+  janitor::clean_names() |> 
+  pivot_longer(
+    jan:dec,
+    names_to = "month",
+    values_to = "unemployment"
+  ) |> 
+  mutate(
+    month = month.name[match(month, tolower(month.abb))],
+    year = as.numeric(year)
+  )
+
+unemployment_df
+```
+
+```{r}
+merged_df = left_join(pols_month_df,snp_df, by = c("year", "month")) |> 
+  left_join(unemployment_df, by = c("year", "month"))
+
+merged_df
+```
+
+The `pols-month` dataset contains `r nrow(pols_month_df)` and `r ncol(pols_month_df)` columns. It contains various variables including `year`, `month`, `gov_gop`, `sen_gop`, `rep_gop`, `gov_dem`, `sen_dem`, `rep_dem`, `president`. The range is `r pull(pols_month_df, year) |> min()` to `r pull(pols_month_df, year) |> max()`. 
+
+The `snp` dataset contains `r nrow(snp_df)` rows and `r ncol(snp_df)` columns. It contains `year`, `month`, `close`. The range is `r pull(snp_df, year) |> min()` to `r pull(snp_df, year) |> max()`.
+
+The `unemployment` dataset contains `r nrow(unemployment_df)` rows and `r ncol(unemployment_df)` columns. It contains `year`, `month`, `unemployment`. The range is `r pull(unemployment_df, year) |> min()` to `r pull(unemployment_df, year) |> max()`.
+
+The merged dataset `merged_df` contains `r nrow(merged_df)` observations and `r ncol(merged_df)`. It contains various variables including `year`, `month`, `gov_gop`, `sen_gop`, `rep_gop`, `gov_dem`, `sen_dem`, `rep_dem`, `president`, `close`. Columns `close` and `unemployment` have the values of `NA`, meaning that there are missing data. 
