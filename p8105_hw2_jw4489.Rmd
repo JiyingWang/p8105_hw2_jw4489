@@ -12,6 +12,8 @@ library(readxl)
 
 ##Problem 1
 
+First, clean the data in pols-month.csv.
+
 ```{r}
 pols_month_df = 
   read_csv("p1data/pols-month.csv") |> 
@@ -28,6 +30,8 @@ pols_month_df =
 
 pols_month_df
 ```
+
+Second, clean the data in snp.csv using a similar process to the above.
 
 ```{r}
 snp_df = 
@@ -46,6 +50,8 @@ snp_df =
 snp_df
 ```
 
+Third, tidy the unemployment data.
+
 ```{r}
 unemployment_df = 
   read_csv("p1data/unemployment.csv") |> 
@@ -59,6 +65,8 @@ unemployment_df =
 
 unemployment_df
 ```
+
+Join the datasets.
 
 ```{r}
 merged_df = left_join(pols_month_df,snp_df, by = c("year", "month")) |> 
@@ -77,10 +85,13 @@ The merged dataset `merged_df` contains `r nrow(merged_df)` observations and `r 
 
 ##Problem 2
 
+Read and clean the Mr. Trash Wheel sheet.
+
 ```{r}
 trash_wheel_df = 
   read_excel("p2data/202309 Trash Wheel Collection Data.xlsx", 
-             sheet = "Mr. Trash Wheel") |> 
+             sheet = "Mr. Trash Wheel", 
+             skip = 1) |> 
   janitor::clean_names() |>
   drop_na(dumpster) |> 
   select(dumpster:homes_powered)|> 
@@ -93,10 +104,13 @@ trash_wheel_df =
 trash_wheel_df
 ```
 
+Import, clean, and organize the data for Professor Trash Wheel and Gwynnda.
+
 ```{r}
 prof_df = 
   read_excel("p2data/202309 Trash Wheel Collection Data.xlsx", 
-             sheet = "Professor Trash Wheel") |> 
+             sheet = "Professor Trash Wheel", 
+             skip = 1) |> 
   janitor::clean_names() |>
   drop_na(dumpster) |> 
   mutate(
@@ -111,7 +125,8 @@ prof_df
 ```{r}
 gwynnda_df = 
   read_excel("p2data/202309 Trash Wheel Collection Data.xlsx", 
-             sheet = "Gwynnda Trash Wheel") |> 
+             sheet = "Gwynnda Trash Wheel",
+             skip = 1) |> 
   janitor::clean_names() |>
   drop_na(dumpster) |> 
   mutate(
@@ -122,6 +137,8 @@ gwynnda_df =
 
 gwynnda_df
 ```
+
+Combine the cleaned datasets with the Mr. Trash Wheel dataset to produce a single tidy dataset. 
 
 ```{r}
 combined_df = bind_rows(trash_wheel_df, prof_df, gwynnda_df) |> 
@@ -139,6 +156,31 @@ The `Gwynnda Trash Wheel` dataset contains `r nrow(gwynnda_df)` rows and `r ncol
 The combined dataset contains `r nrow(combined_df)` rows and `r ncol(combined_df)` columns. 
 
 The datasets contains various variables, inclusing “month”, “year”, “date”, “weight_tons”, “volume_cubic_yards”, “plastic_bottles”, and “polystyrene”. These variables represent the characteristics of trash collected.
+
+## Problem 3
+
+Import, clean, and tidy the dataset of baseline demographics.
+
+```{r}
+baseline_df = 
+  read_csv("p3data/MCI_baseline.csv", 
+           skip = 1) |> 
+  janitor::clean_names() |>
+  mutate(
+    sex = replace(sex, sex == 1, "male"),
+    sex = replace(sex, sex == 0, "female"),
+    apoe4 = replace(apoe4, apoe4 == 1, "carrier"),
+    apoe4 = replace(apoe4, apoe4 == 0, "non-carrier"),
+    ) |>
+  filter(age_at_onset == "." | age_at_onset > current_age)
+
+baseline_df  
+```
+
+There are several important steps in the import process. First, data import. The dataset is imported from a CSV file named "MCI_baseline.csv" using the `read_csv` function. The `skip = 1` argument skips the first row of the CSV file. Second, data cleaning. The `janitor::clean_names()` function is used to clean the column names, ensuring they are in a consistent format. Lastly, data transformation. The `mutate` function is used to create or modify columns in the dataset. The "sex" column is being replaced with "male" for values of 1 and "female" for values of 0, and the "apoe4" column is being replaced with "carrier" for values of 1 and "non-carrier" for values of 0. The `filter` function is used to remove any participants who do not meet the stated inclusion criteria.
+
+`r nrow(baseline_df)` participants were recruited, and `r filter(baseline_df, age_at_onset != ".") |> nrow()` participants develop MCI. The average baseline age is `r mean(pull(baseline_df, current_age)) |> round(digits = 0)`. The proportion of women in the study are APOE4 carriers is `r scales::percent(nrow(filter(baseline_df, sex == "female" & apoe4 =="carrier")) / nrow(filter(baseline_df, sex == "female")))`.
+
 
 
 
