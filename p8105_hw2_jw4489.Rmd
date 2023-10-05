@@ -12,7 +12,7 @@ library(readxl)
 
 ## Problem 1
 
-### First, clean the data in pols-month.csv.
+##### First, clean the data in pols-month.csv.
 
 ```{r}
 pols_month_df = 
@@ -31,7 +31,7 @@ pols_month_df =
 pols_month_df
 ```
 
-### Second, clean the data in snp.csv using a similar process to the above.
+##### Second, clean the data in snp.csv using a similar process to the above.
 
 ```{r}
 snp_df = 
@@ -50,7 +50,7 @@ snp_df =
 snp_df
 ```
 
-### Third, tidy the unemployment data.
+##### Third, tidy the unemployment data.
 
 ```{r}
 unemployment_df = 
@@ -66,7 +66,7 @@ unemployment_df =
 unemployment_df
 ```
 
-### Join the datasets.
+##### Join the datasets.
 
 ```{r}
 merged_df = left_join(pols_month_df,snp_df, by = c("year", "month")) |> 
@@ -75,7 +75,7 @@ merged_df = left_join(pols_month_df,snp_df, by = c("year", "month")) |>
 merged_df
 ```
 
-### Summarize the datasets.
+##### Summarize the datasets.
 
 The `pols-month` dataset contains `r nrow(pols_month_df)` and `r ncol(pols_month_df)` columns. It contains various variables including `year`, `month`, `gov_gop`, `sen_gop`, `rep_gop`, `gov_dem`, `sen_dem`, `rep_dem`, `president`. The range is `r pull(pols_month_df, year) |> min()` to `r pull(pols_month_df, year) |> max()`. 
 
@@ -87,7 +87,7 @@ The merged dataset `merged_df` contains `r nrow(merged_df)` observations and `r 
 
 ## Problem 2
 
-### Read and clean the Mr. Trash Wheel sheet.
+##### Read and clean the Mr. Trash Wheel sheet.
 
 ```{r}
 trash_wheel_df = 
@@ -106,7 +106,7 @@ trash_wheel_df =
 trash_wheel_df
 ```
 
-### Import, clean, and organize the data for Professor Trash Wheel and Gwynnda.
+##### Import, clean, and organize the data for Professor Trash Wheel and Gwynnda.
 
 ```{r}
 prof_df = 
@@ -140,7 +140,7 @@ gwynnda_df =
 gwynnda_df
 ```
 
-### Combine the cleaned datasets with the Mr. Trash Wheel dataset to produce a single tidy dataset. 
+##### Combine the cleaned datasets with the Mr. Trash Wheel dataset to produce a single tidy dataset. 
 
 ```{r}
 combined_df = bind_rows(trash_wheel_df, prof_df, gwynnda_df) |> 
@@ -149,7 +149,7 @@ combined_df = bind_rows(trash_wheel_df, prof_df, gwynnda_df) |>
 combined_df
 ```
 
-### Summarize the datasets.
+##### Summarize the datasets.
 
 The `Mr. trash wheel` dataset contains `r nrow(trash_wheel_df)` rows and `r ncol(trash_wheel_df)` columns.
 
@@ -163,7 +163,7 @@ The datasets contains various variables, inclusing “month”, “year”, “d
 
 ## Problem 3
 
-### Import, clean, and tidy the dataset of baseline demographics.
+##### Import, clean, and tidy the dataset of baseline demographics.
 
 ```{r}
 baseline_df = 
@@ -181,7 +181,7 @@ baseline_df =
 baseline_df  
 ```
 
-### Discussion.
+##### Discussion.
 
 There are several important steps in the import process. First, data import. The dataset is imported from a CSV file named "MCI_baseline.csv" using the `read_csv` function. The `skip = 1` argument skips the first row of the CSV file. Second, data cleaning. The `janitor::clean_names()` function is used to clean the column names, ensuring they are in a consistent format. Lastly, data transformation. The `mutate` function is used to create or modify columns in the dataset. The "sex" column is being replaced with "male" for values of 1 and "female" for values of 0, and the "apoe4" column is being replaced with "carrier" for values of 1 and "non-carrier" for values of 0. The `filter` function is used to remove any participants who do not meet the stated inclusion criteria.
 
@@ -189,7 +189,7 @@ The dataset contains variables including "id", "current_age", "sex", "education"
 
 `r nrow(baseline_df)` participants were recruited, and `r filter(baseline_df, age_at_onset != ".") |> nrow()` participants develop MCI. The average baseline age is `r mean(pull(baseline_df, current_age)) |> round(digits = 0)`. The proportion of women in the study are APOE4 carriers is `r scales::percent(nrow(filter(baseline_df, sex == "female" & apoe4 =="carrier")) / nrow(filter(baseline_df, sex == "female")))`.
 
-### Import, clean, and tidy the dataset of longitudinally observed biomarker values.
+##### Import, clean, and tidy the dataset of longitudinally observed biomarker values.
 
 ```{r}
 amyloid_df = 
@@ -201,10 +201,30 @@ amyloid_df =
 amyloid_df  
 ```
 
-### Discussion
+##### Discussion
 
-Importing this dataset is similar to importing the `MCI_baseline` dataset. Firstly, the dataset is imported from a CSV file named "mci_amyloid.csv" using the  `read_csv` function. The `skip = 1` argument skips the first row of the CSV file. Secondly, the `janitor::clean_names()` function is used to clean the column names, ensuring they are in a consistent format. Lastly, to stay consistent with `baseline_df`, I rename the variable "study_id" to "id". The dataset contains variables including "id", "baseline", "time_2", "time_4", "time_6", and "time_8". It presents the longitudinally observed biomarker values of participants. The dataset contains `r nrow(amyloid_df)` rows and `r ncol(amyloid_df)` columns.
+Importing this dataset is similar to importing the `MCI_baseline` dataset. Firstly, the dataset is imported from a CSV file named "mci_amyloid.csv" using the  `read_csv` function. The `skip = 1` argument skips the first row of the CSV file. Secondly, the `janitor::clean_names()` function is used to clean the column names, ensuring they are in a consistent format. Lastly, to stay consistent with `baseline_df`, I rename the variable "study_id" to "id". 
 
+The dataset contains variables including "id", "baseline", "time_2", "time_4", "time_6", and "time_8". It presents the longitudinally observed biomarker values of participants. The dataset contains `r nrow(amyloid_df)` rows and `r ncol(amyloid_df)` columns.
 
+##### Check wheather some participants appear in only the baseline or amyloid datasets.
 
+```{r}
+merged_df_p3 = 
+  full_join(baseline_df, amyloid_df, by = c("id"))
 
+merged_df_p3
+```
+
+There are some participants appear in only the baseline or amyloid datasets. `r nrow(merged_df_p3) - nrow(baseline_df)` participants are only in the amyloid dataset, and `r nrow(merged_df_p3) - nrow(amyloid_df)` participants are only in the baseline dataset. According to this, I find that there are more participants appear in only the amyloid dataset than the baseline dataset.
+
+##### Merge the datasets so that only participants who appear in both datasets are retained.
+
+```{r}
+both_df = 
+  inner_join(baseline_df, amyloid_df,by = c("id"))
+
+both_df
+```
+
+The resulting dataset contains `r nrow(both_df)` rows and `r ncol(both_df)` columns.
