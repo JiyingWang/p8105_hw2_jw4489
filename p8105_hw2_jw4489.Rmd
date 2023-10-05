@@ -176,7 +176,7 @@ baseline_df =
     apoe4 = replace(apoe4, apoe4 == 1, "carrier"),
     apoe4 = replace(apoe4, apoe4 == 0, "non-carrier"),
     ) |>
-  filter(age_at_onset == "." | age_at_onset > current_age)
+  filter(age_at_onset > current_age)
 
 baseline_df  
 ```
@@ -187,7 +187,7 @@ There are several important steps in the import process. First, data import. The
 
 The dataset contains variables including "id", "current_age", "sex", "education", "apoe4", and "age_at_onset". It provides the characteristics of the participants. The dataset contains `r nrow(baseline_df)` rows and `r ncol(baseline_df)` columns.
 
-`r nrow(baseline_df)` participants were recruited, and `r filter(baseline_df, age_at_onset != ".") |> nrow()` participants develop MCI. The average baseline age is `r mean(pull(baseline_df, current_age)) |> round(digits = 0)`. The proportion of women in the study are APOE4 carriers is `r scales::percent(nrow(filter(baseline_df, sex == "female" & apoe4 =="carrier")) / nrow(filter(baseline_df, sex == "female")))`.
+`r nrow(baseline_df)` participants were recruited, and `r filter(baseline_df) |> nrow()` participants develop MCI. The average baseline age is `r mean(pull(baseline_df, current_age)) |> round(digits = 0)`. The proportion of women in the study are APOE4 carriers is `r scales::percent(nrow(filter(baseline_df, sex == "female" & apoe4 =="carrier")) / nrow(filter(baseline_df, sex == "female")))`.
 
 ##### Import, clean, and tidy the dataset of longitudinally observed biomarker values.
 
@@ -225,6 +225,15 @@ both_df =
   inner_join(baseline_df, amyloid_df,by = c("id"))
 
 both_df
+summary(both_df)
 ```
 
-The resulting dataset contains `r nrow(both_df)` rows and `r ncol(both_df)` columns.
+The resulting dataset contains `r nrow(both_df)` rows and `r ncol(both_df)` columns. This means that there are `r nrow(both_df)` participants appear in both datasets. Compared to the dataset `merged_df_p3`, it has 24 less rows, which are the participants who only appear in one of the datasets. In addition, the resulting dataset contains variables including "id", "current_age", "sex", "education", "apoe4", "age_at_onset", "baseline", "time_2", "time_4", "time_6", and "time_8".
+
+##### Export the dataset.
+
+```{r}
+write.csv(both_df, "p3data/merged_both_contained.csv", row.names = FALSE)
+```
+
+
