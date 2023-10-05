@@ -6,6 +6,7 @@ date: "2023-10-04"
 
 ```{r}
 library(tidyverse)
+library(readxl)
 ```
 
 
@@ -38,10 +39,9 @@ snp_df =
   separate(date, into = c("year", "month", "day"), sep = "/") |> 
   mutate(
     month = month.name[as.numeric(month)],
-    year = as.numeric(year),
-    year = ifelse(year > 2023, year - 100, year)
-  ) |> 
-  select(-day)
+    year = as.numeric(year)) |>
+  arrange(year, month) |>
+  relocate(year, month, everything())
 
 snp_df
 ```
@@ -54,11 +54,8 @@ unemployment_df =
     jan:dec,
     names_to = "month",
     values_to = "unemployment"
-  ) |> 
-  mutate(
-    month = month.name[match(month, tolower(month.abb))],
-    year = as.numeric(year)
-  )
+  ) |>
+  arrange(year, month)
 
 unemployment_df
 ```
@@ -76,4 +73,73 @@ The `snp` dataset contains `r nrow(snp_df)` rows and `r ncol(snp_df)` columns. I
 
 The `unemployment` dataset contains `r nrow(unemployment_df)` rows and `r ncol(unemployment_df)` columns. It contains `year`, `month`, `unemployment`. The range is `r pull(unemployment_df, year) |> min()` to `r pull(unemployment_df, year) |> max()`.
 
-The merged dataset `merged_df` contains `r nrow(merged_df)` observations and `r ncol(merged_df)`. It contains various variables including `year`, `month`, `gov_gop`, `sen_gop`, `rep_gop`, `gov_dem`, `sen_dem`, `rep_dem`, `president`, `close`. Columns `close` and `unemployment` have the values of `NA`, meaning that there are missing data. 
+The merged dataset `merged_df` contains `r nrow(merged_df)` observations and `r ncol(merged_df)`. It contains various variables including `year`, `month`, `gov_gop`, `sen_gop`, `rep_gop`, `gov_dem`, `sen_dem`. 
+
+##Problem 2
+
+```{r}
+trash_wheel_df = 
+  read_excel("p2data/202309 Trash Wheel Collection Data.xlsx", 
+             sheet = "Mr. Trash Wheel") |> 
+  janitor::clean_names() |>
+  drop_na(dumpster) |> 
+  select(dumpster:homes_powered)|> 
+  mutate(
+    homes_powered = (weight_tons * 500) / 30,
+    name = "Mr. Trash Wheel",
+    year = as.numeric(year)
+  )
+
+trash_wheel_df
+```
+
+```{r}
+prof_df = 
+  read_excel("p2data/202309 Trash Wheel Collection Data.xlsx", 
+             sheet = "Professor Trash Wheel") |> 
+  janitor::clean_names() |>
+  drop_na(dumpster) |> 
+  mutate(
+    homes_powered = (weight_tons * 500) / 30,
+    name = "Professor Trash Wheel",
+    year = as.numeric(year)
+  )
+
+prof_df
+```
+
+```{r}
+gwynnda_df = 
+  read_excel("p2data/202309 Trash Wheel Collection Data.xlsx", 
+             sheet = "Gwynnda Trash Wheel") |> 
+  janitor::clean_names() |>
+  drop_na(dumpster) |> 
+  mutate(
+    homes_powered = (weight_tons*500)/30,
+    name = "Gwynnda Trash Wheel",
+    year = as.numeric(year)
+  )
+
+gwynnda_df
+```
+
+```{r}
+combined_df = bind_rows(trash_wheel_df, prof_df, gwynnda_df) |> 
+  select(trash_wheel_name = "name",everything())
+
+combined_df
+```
+
+The `Mr. trash wheel` dataset contains `r nrow(trash_wheel_df)` rows and `r ncol(trash_wheel_df)` columns.
+
+The `Professor Trash Wheel` dataset contains `r nrow(prof_df)` rows and `r ncol(prof_df)` columns. For available data, the total weight of trash collected by Professor Trash Wheel is `r sum(prof_df|>pull(weight_tons))` tons.
+
+The `Gwynnda Trash Wheel` dataset contains `r nrow(gwynnda_df)` rows and `r ncol(gwynnda_df)` columns. For available data, the total number of cigarette butts collected by Gwynnda in July of 2021 is `r subset(gwynnda_df, year == 2021 & month == "July") |> pull(cigarette_butts) |> sum()|>as.integer()`.
+
+The combined dataset contains `r nrow(combined_df)` rows and `r ncol(combined_df)` columns. 
+
+The datasets contains various variables, inclusing “month”, “year”, “date”, “weight_tons”, “volume_cubic_yards”, “plastic_bottles”, and “polystyrene”. These variables represent the characteristics of trash collected.
+
+
+
+
